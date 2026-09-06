@@ -21,7 +21,6 @@ class OverlayService : Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var overlayView: LinearLayout
     private lateinit var wifiIcon: ImageView
-    private lateinit var dataIcon: ImageView
     private lateinit var wifiManager: WifiManager
 
     private val CHANNEL_ID = "nettoggle_channel"
@@ -42,17 +41,11 @@ class OverlayService : Service() {
         }
 
         wifiIcon = ImageView(this).apply {
-            setImageResource(android.R.drawable.stat_sys_data_bluetooth) // placeholder, replaced below
             setImageResource(R.drawable.ic_wifi)
-            layoutParams = LinearLayout.LayoutParams(90, 90).apply { marginEnd = 24 }
-        }
-        dataIcon = ImageView(this).apply {
-            setImageResource(R.drawable.ic_data)
             layoutParams = LinearLayout.LayoutParams(90, 90)
         }
 
         overlayView.addView(wifiIcon)
-        overlayView.addView(dataIcon)
 
         val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
@@ -79,18 +72,11 @@ class OverlayService : Service() {
             overlayView.postDelayed({ refreshIcons() }, 400)
         }
 
-        dataIcon.setOnClickListener {
-            val newState = !RootUtils.isMobileDataEnabled()
-            RootUtils.setMobileDataEnabled(newState)
-            overlayView.postDelayed({ refreshIcons() }, 400)
-        }
-
         refreshIcons()
     }
 
     private fun refreshIcons() {
         wifiIcon.alpha = if (wifiManager.isWifiEnabled) 1.0f else 0.35f
-        dataIcon.alpha = if (RootUtils.isMobileDataEnabled()) 1.0f else 0.35f
     }
 
     private fun makeDraggable(view: View, params: WindowManager.LayoutParams) {
@@ -115,7 +101,6 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    // treat as click if barely moved
                     val movedX = Math.abs(event.rawX - touchX)
                     val movedY = Math.abs(event.rawY - touchY)
                     if (movedX < 15 && movedY < 15) v.performClick()
